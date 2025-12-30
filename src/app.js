@@ -11,6 +11,12 @@ import taskRoutes from './routes/taskRoutes.js';
 const app = express();
 app.set('trust proxy', 1);
 
+// Keep-Alive Route
+app.get('/keep-alive', (req, res) => {
+    console.log("Keep-alive ping received from cron-job.org at:", new Date().toISOString());
+    res.status(200).send('OK');
+});
+
 // Database
 connectDB();
 
@@ -26,26 +32,14 @@ app.use('/api/tasks', taskRoutes);
 
 // Test Route
 app.get('/test', (req, res) => {
+    const isAuth = req.auth?.userId;
+
     res.status(200).json({
         status: "Success",
-        message: "Server is running smoothly",
+        message: `Server is running smoothly and ${isAuth ? isAuth + " authenticated!" : "not authenticated!"}`,
         env: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString()
     });
-});
-
-// Test Auth
-app.get('/api/test', (req, res) => {
-    if (req.auth?.userId) {
-        res.status(200).json({
-            message: "Authenticated",
-            userId: req.auth.userId
-        });
-    } else {
-        res.status(401).json({
-            message: "Not Authenticated"
-        });
-    }
 });
 
 // Error Handling
