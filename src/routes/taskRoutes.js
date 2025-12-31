@@ -43,7 +43,7 @@ router.get('/', asyncHandler(async (req, res) => {
   if (isCompleted !== undefined) query.isCompleted = isCompleted === 'true';
   if (priority) query.priority = priority;
 
-  const tasks = await Task.find(query).sort({ dueDate: -1 });
+  const tasks = await Task.find(query).sort({ priority: -1, dueDate: -1 });
 
   res.status(200).json({
     message: "Tasks retrieved successfully",
