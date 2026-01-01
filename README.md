@@ -36,6 +36,8 @@ This is the robust backend service for **Bero Tasker**, a full-stack productivit
 └── .env             # Environment variables
 ```
 
+---
+
 ## 🚦 Getting Started
 **1. Prerequisites**
 * Node.js installed.
@@ -68,6 +70,8 @@ npm run dev
 # For production
 npm start
 ```
+
+---
 
 ## 🔗 Related Project
 This API powers the [Bero Tasker Mobile App](https://github.com/ibrahimdayoub/tasker-frontend)
