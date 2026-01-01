@@ -43,7 +43,18 @@ router.get('/', asyncHandler(async (req, res) => {
   if (isCompleted !== undefined) query.isCompleted = isCompleted === 'true';
   if (priority) query.priority = priority;
 
-  const tasks = await Task.find(query).sort({ priority: -1, dueDate: -1 });
+  // const tasks = await Task.find(query).sort({ priority: -1, dueDate: 1 });
+
+  let tasks = await Task.find(query).sort({ dueDate: 1 });
+
+  const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+
+  tasks.sort((a, b) => {
+    if (priorityOrder[b.priority] !== priorityOrder[a.priority]) {
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    }
+    return 0;
+  });
 
   res.status(200).json({
     message: "Tasks retrieved successfully",
