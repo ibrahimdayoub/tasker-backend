@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import mongoose from 'mongoose';
 import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 import cors from 'cors';
 import connectDB from './config/db.js';
@@ -11,10 +12,29 @@ import taskRoutes from './routes/taskRoutes.js';
 const app = express();
 app.set('trust proxy', 1);
 
-// Keep-Alive Route
-app.get('/keep-alive', (req, res) => {
-    console.log("Keep-alive ping received from cron-job.org at:", new Date().toISOString());
-    res.status(200).send('OK');
+// Keep-Alive (cron-job.org)
+app.get('/keep-alive', async (req, res) => {
+    const timestamp = new Date().toISOString();
+    try {
+        // Check Mongoose connection state (0 = disconnected, 1 = connected)
+        const isConnected = mongoose.connection.readyState === 1;
+
+        if (isConnected) {
+            // Perform a "Ping" command to MongoDB to ensure the session is active
+            await mongoose.connection.db.admin().ping();
+        }
+
+        console.log(`[${timestamp}] Keep-alive ping received. DB Status: ${isConnected ? 'Active' : 'Disconnected'}`);
+
+        res.status(200).json({
+            status: 'OK',
+            database: isConnected ? 'Connected' : 'Disconnected',
+            timestamp: timestamp
+        });
+    } catch (error) {
+        console.error(`[${timestamp}] Keep-alive Error:`, error.message);
+        res.status(500).json({ status: 'Error', message: error.message });
+    }
 });
 
 // Database
@@ -29,18 +49,6 @@ app.use('/api', apiLimiter);
 // Routes
 app.use('/api/notes', noteRoutes);
 app.use('/api/tasks', taskRoutes);
-
-// Test Route
-app.get('/test', (req, res) => {
-    const isAuth = req.auth?.userId;
-
-    res.status(200).json({
-        status: "Success",
-        message: `Server is running smoothly and ${isAuth ? isAuth + " authenticated!" : "not authenticated!"}`,
-        env: process.env.NODE_ENV || 'development',
-        timestamp: new Date().toISOString()
-    });
-});
 
 // Error Handling
 app.use(notFound);
